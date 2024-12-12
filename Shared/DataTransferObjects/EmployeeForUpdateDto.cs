@@ -2,7 +2,7 @@
 
 namespace Shared.DataTransferObjects
 {
-    public record EmployeeForCreationDto
+    public record EmployeeForUpdateDto
     {
         [Required(ErrorMessage = "Employee name is required field.")]
         [MaxLength(30, ErrorMessage = "Maximum length for the name is 30 characters.")]
@@ -14,5 +14,5 @@ namespace Shared.DataTransferObjects
         [Required(ErrorMessage = "Positions name is required field.")]
         [MaxLength(20, ErrorMessage = "Maximum length for the name is 20 characters.")]
         public string? Position { get; init; }
-    };
+    }
 }
