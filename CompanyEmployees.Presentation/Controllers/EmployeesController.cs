@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CompanyEmployees.ActionFilters;
+using CompanyEmployees.Presentation.ActionFilters;
+using Entities.LinkModels;
+using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using Shared.RequestFeatures;
+using System.Text.Json;
 
 namespace CompanyEmployees.Presentation.Controllers
 {
@@ -15,10 +20,13 @@ namespace CompanyEmployees.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEmployeesForCompany(Guid companyId)
+        [ServiceFilter(typeof(ValidateMediaTypeAttribute))]
+        public async Task<IActionResult> GetEmployeesForCompany(Guid companyId, [FromQuery] EmployeeParameters employeeParameters)
         {
-            var employees = await _service.EmployeeService.GetEmployeesAsync(companyId,trackChanges:false);
-            return Ok(employees);
+            var linkParams = new LinkParameters(employeeParameters, HttpContext);
+            var result = await _service.EmployeeService.GetEmployeesAsync(companyId, linkParams, trackChanges: false);
+            Response.Headers.Add("X-Pagination",JsonSerializer.Serialize(result.metaData));
+            return result.linkResponse.HasLinks ? Ok(result.linkResponse.LinkedEntities) : Ok(result.linkResponse.ShapedEntities);
         }
 
         [HttpGet("{id:guid}", Name = "GetEmployeeForCompany")]
@@ -29,6 +37,7 @@ namespace CompanyEmployees.Presentation.Controllers
         }
 
         [HttpPost]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateEmployeeForCompany(Guid companyId, [FromBody] EmployeeForCreationDto employee)
         {
             if (employee is null)
@@ -54,6 +63,7 @@ namespace CompanyEmployees.Presentation.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateEmployeeForCompany(Guid companyId, Guid id,[FromBody] EmployeeForUpdateDto employee)
         {
             if (employee is null)

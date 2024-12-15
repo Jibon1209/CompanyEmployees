@@ -1,8 +1,14 @@
+using CompanyEmployees.ActionFilters;
 using CompanyEmployees.Extensions;
+using CompanyEmployees.Presentation.ActionFilters;
+using CompanyEmployees.Utility;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using NLog;
+using Service.DataShaping;
+using Shared.DataTransferObjects;
 //168 page done
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,9 +26,21 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
-
+builder.Services.AddScoped<ValidationFilterAttribute>();
+builder.Services.AddScoped<IDataShaper<EmployeeDto>, DataShaper<EmployeeDto>>();
+builder.Services.AddScoped<ValidateMediaTypeAttribute>();
+builder.Services.AddScoped<IEmployeeLinks, EmployeeLinks>();
 builder.Services.AddControllers()
-    .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
+    .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly)
+    .AddNewtonsoftJson()
+    .AddXmlDataContractSerializerFormatters()
+    .AddMvcOptions(options =>
+    {
+        options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+    });
+
+    
+builder.Services.AddCustomMediaTypes();
 
 var app = builder.Build();
 
