@@ -46,6 +46,10 @@ builder.Services.ConfigureVersioning();
 builder.Services.ConfigureResponseCaching();
 builder.Services.ConfigureHttpCacheHeaders();
 
+builder.Services.AddAuthentication();
+builder.Services.ConfigureIdentity();
+builder.Services.ConfigureJWT(builder.Configuration);
+
 
 
 // Configure MVC and controllers
@@ -95,6 +99,7 @@ app.UseResponseCaching();
 app.UseHttpCacheHeaders();
 
 app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
+app.UseAuthentication();
 app.UseAuthorization(); // Authorization middleware
 
 // Map controllers
